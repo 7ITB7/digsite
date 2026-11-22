@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07060d">
+<title>DIGSITE · early-web document hunter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07060d; --panel:#110f1c; --panel2:#191628; --line:#2a2540;
+  --ink:#f1ecff; --dim:#9c95ba; --faint:#5f5880;
+  --pink:#ff3ea5; --cyan:#29f0ff; --lime:#c6ff3d; --amber:#ffb000; --violet:#a77bff; --red:#ff4b4b; --gold:#ffd36e;
+  --display:"VT323", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --mono:ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;overflow-x:hidden}
+body{
+  background:
+    radial-gradient(900px 520px at 85% -8%, #2b0d1f 0%, transparent 62%),
+    radial-gradient(800px 480px at -15% 105%, #08303a 0%, transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--ink); font:14.5px/1.45 var(--mono);
+  min-height:100vh; -webkit-text-size-adjust:100%;
+  padding-bottom:calc(100px + env(safe-area-inset-bottom));
+}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:90;
+  background:repeating-linear-gradient(0deg, rgba(255,255,255,.026) 0 1px, transparent 1px 3px)}
+body.noscroll{overflow:hidden}
+a{color:var(--cyan)}
+button{font:inherit;color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:0 14px}
+
+/* ---------- header ---------- */
+.rule{height:6px;background:repeating-linear-gradient(90deg,var(--red) 0 40px,#000 40px 46px);margin-top:env(safe-area-inset-top)}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:14px 0 4px}
+.brand{min-width:0}
+.brand h1{margin:0;font:clamp(40px,13vw,62px)/0.82 var(--display);letter-spacing:2px;color:var(--lime);
+  text-shadow:3px 0 0 var(--red), -2px 0 0 var(--cyan), 0 0 22px rgba(198,255,61,.3)}
+.brand h1 span{color:var(--ink)}
+.brand p{margin:6px 0 0;color:var(--dim);font-size:12px;letter-spacing:.5px}
+.brand p b{color:var(--red);font-weight:normal}
+.tally{flex:0 0 auto;text-align:right;border:2px solid var(--line);background:var(--panel);padding:6px 10px 5px;min-width:96px;box-shadow:4px 4px 0 #000}
+.tally b{display:block;font:34px/0.9 var(--display);color:var(--amber)}
+.tally small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+.tally i{display:block;color:var(--faint);font-style:normal;font-size:10.5px;margin-top:2px}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:6px;margin:10px 0 4px;position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 70%,transparent);padding:8px 0 10px}
+.tab{flex:1;background:var(--panel);border:2px solid var(--line);padding:9px 6px 7px;font:22px/1 var(--display);letter-spacing:1px;color:var(--dim);cursor:pointer}
+.tab.on{color:#000;background:var(--cyan);border-color:var(--cyan);box-shadow:3px 3px 0 var(--red)}
+.tab .count{font-size:16px;opacity:.8}
+
+/* ---------- steps & chips ---------- */
+.step{margin:14px 0 4px}
+.stephead{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.stephead .n{font:30px/1 var(--display);color:var(--red)}
+.stephead h2{margin:0;font:24px/1 var(--display);letter-spacing:2px}
+.stephead em{font-style:normal;color:var(--faint);font-size:11.5px}
+.grp{margin:0 0 10px}
+.grplabel{color:var(--dim);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 6px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chiprow::-webkit-scrollbar{display:none}
+.chiprow.wraprow{flex-wrap:wrap;overflow:visible}
+.chip{--c:var(--cyan);flex:0 0 auto;text-align:left;cursor:pointer;background:var(--panel);border:2px solid var(--line);padding:8px 11px 7px;min-height:44px;max-width:240px}
+.chip .cl{display:block;font-size:13.5px;white-space:nowrap}
+.chip .ct{display:block;font-size:10.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--panel));box-shadow:3px 3px 0 var(--c)}
+.chip.on .ct{color:var(--dim)}
+.chip:active{transform:translate(2px,2px)}
+.row{display:flex;gap:8px;align-items:stretch}
+.inline{display:flex;gap:8px;align-items:center;margin-top:6px}
+.inline label{color:var(--dim);font-size:12px;white-space:nowrap;min-width:92px}
+input.field{flex:1;min-width:0;background:#05040a;color:var(--lime);border:2px solid var(--line);padding:10px 11px;font:14px var(--mono);border-radius:0;outline:none}
+input.field:focus{border-color:var(--lime)}
+input.field::placeholder{color:var(--faint)}
+
+/* ---------- status ---------- */
+.status{margin:14px 0 10px;border:2px dashed var(--line);padding:10px 12px;background:rgba(17,15,28,.7);color:var(--dim);font-size:12.5px;word-break:break-word;min-height:44px;white-space:pre-line}
+.status.err{border-color:var(--red);color:#ffc9c4}
+.status.work{border-color:var(--amber);color:var(--amber)}
+.status.ok{border-color:var(--lime);color:var(--ink)}
+.status .cur{display:inline-block;width:8px;height:14px;background:currentColor;vertical-align:-2px;margin-left:3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.status a{font-size:11.5px}
+.meter{height:6px;background:var(--panel2);margin-top:8px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--amber);transition:width .25s}
+
+/* ---------- findings ---------- */
+.sechead{display:flex;justify-content:space-between;align-items:baseline;margin:18px 0 8px}
+.sechead h3{margin:0;font:24px/1 var(--display);letter-spacing:2px;color:var(--lime)}
+.sechead span{color:var(--faint);font-size:11.5px}
+.list{display:grid;gap:12px}
+.find{--c:var(--cyan);background:var(--panel);border:2px solid var(--line);border-left:6px solid var(--c);padding:11px 12px 10px;box-shadow:4px 4px 0 #000;min-width:0}
+.find.strong{--c:var(--red)} .find.medium{--c:var(--amber)} .find.weak{--c:var(--faint)}
+.fhead{display:flex;align-items:center;gap:8px}
+.fname{flex:1;min-width:0;color:var(--ink);font-size:15px;font-weight:600;overflow-wrap:anywhere}
+.fyear{font:22px/1 var(--display);color:#000;background:var(--c);padding:1px 6px 0}
+.fpath{color:var(--dim);font-size:11.5px;margin:5px 0 6px;overflow-wrap:anywhere}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}
+.lvl{font:18px/1 var(--display);letter-spacing:1px;padding:3px 7px 1px;color:#000;background:var(--c)}
+.pill{--t:var(--dim);font-size:11px;padding:3px 7px;border:1px solid var(--t);color:var(--t)}
+.snip{margin:6px 0;padding:8px 10px;background:#05040a;border-left:2px solid var(--line);font-size:12.5px;line-height:1.45;color:#d9d3ef;overflow-wrap:anywhere}
+mark{background:none;color:var(--t,var(--lime));border-bottom:2px solid var(--t,var(--lime));font-weight:600;padding:0 1px}
+.fmeta{color:var(--faint);font-size:11px;margin:6px 0 8px}
+.facts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:6px 14px;background:var(--panel2);border:2px solid var(--line);color:var(--ink);text-decoration:none;font:20px/1 var(--display);letter-spacing:1px;cursor:pointer}
+.btn:active{transform:translate(2px,2px)}
+.btn.save{border-color:var(--lime);color:var(--lime)}
+.btn.save.saved{background:var(--lime);color:#000}
+.btn.ghost{color:var(--dim)}
+.btn.wide{display:flex;width:100%;margin:12px 0 0}
+details.quiet{margin:16px 0 0;border:2px solid var(--line);background:var(--panel)}
+details.quiet summary{cursor:pointer;padding:10px 12px;color:var(--dim);font-size:12.5px}
+.qrow{display:flex;gap:8px;align-items:center;padding:8px 12px;border-top:1px solid var(--line)}
+.qrow .qn{flex:1;min-width:0;font-size:12px;color:var(--dim);overflow-wrap:anywhere}
+.qrow .qn b{color:var(--ink);font-weight:normal}
+.qrow .btn{min-height:34px;font-size:17px;padding:4px 10px}
+.empty{color:var(--dim);border:2px dashed var(--line);padding:18px;text-align:center}
+textarea.note{width:100%;margin:2px 0 8px;background:#05040a;color:var(--ink);border:2px solid var(--line);font:13px var(--mono);padding:8px;resize:vertical;border-radius:0;outline:none}
+textarea.note:focus{border-color:var(--c)}
+
+/* ---------- bottom bar ---------- */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:linear-gradient(transparent,rgba(7,6,13,.96) 30%);padding:18px 14px calc(12px + env(safe-area-inset-bottom))}
+.bar .wrap{display:flex;gap:10px;padding:0}
+.bigbtn{flex:1;min-height:62px;border:3px solid #000;cursor:pointer;font:34px/1 var(--display);letter-spacing:4px;box-shadow:5px 5px 0 #000;background:var(--lime);color:#000}
+.bigbtn:active{transform:translate(3px,3px);box-shadow:2px 2px 0 #000}
+.bigbtn.stop{background:var(--red);color:#000}
+
+/* ---------- reader sheet ---------- */
+.sheet{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none}
+.sheetbox{width:100%;max-width:760px;height:88vh;background:var(--panel);border:2px solid var(--cyan);border-bottom:none;display:flex;flex-direction:column;box-shadow:0 -6px 0 var(--red);padding-bottom:env(safe-area-inset-bottom)}
+.sheethead{display:flex;gap:10px;align-items:flex-start;padding:12px 12px 8px;border-bottom:2px solid var(--line)}
+.sheethead div{flex:1;min-width:0}
+.sheethead h3{margin:0;color:var(--cyan);font-size:15px;overflow-wrap:anywhere}
+.sheethead p{margin:3px 0 0;color:var(--faint);font-size:11px;overflow-wrap:anywhere}
+.x{background:none;border:2px solid var(--line);min-width:44px;min-height:44px;font:26px/1 var(--display);cursor:pointer;color:var(--ink)}
+.modes{display:flex;gap:6px;padding:8px 12px;border-bottom:2px solid var(--line);overflow-x:auto}
+.modes button{flex:0 0 auto;background:var(--panel2);border:2px solid var(--line);padding:6px 10px;font:18px/1 var(--display);cursor:pointer;color:var(--dim)}
+.modes button.on{border-color:var(--amber);color:var(--amber)}
+pre.reader{flex:1;margin:0;overflow:auto;padding:12px;background:#05040a;color:#d8ffd0;font:12.5px/1.4 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;-webkit-overflow-scrolling:touch}
+.sheetfoot{display:flex;gap:6px;padding:10px 12px;border-top:2px solid var(--line);flex-wrap:wrap}
+.sheetfoot .btn{font-size:18px;padding:6px 10px;min-height:42px}
+
+/* ---------- about ---------- */
+.about h3{font:26px/1 var(--display);color:var(--lime);letter-spacing:1px;margin:22px 0 8px}
+.about p.dim,.about li em{color:var(--dim);font-style:normal}
+.about ol,.about ul{padding-left:20px}
+.about li{margin:5px 0}
+.card{background:var(--panel);border:2px solid var(--line);padding:12px;box-shadow:4px 4px 0 #000;margin:10px 0}
+.lex{display:grid;gap:8px}
+.lex div{font-size:12px;color:var(--dim)}
+.lex b{font-weight:normal}
+
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--amber);color:#000;padding:9px 14px;font:21px/1 var(--display);letter-spacing:1px;box-shadow:4px 4px 0 #000;opacity:0;pointer-events:none;transition:all .2s;z-index:80;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="rule"></div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>DIG<span>SITE</span></h1>
+      <p>early-web document hunter · <b>reads what people left in public</b></p>
+    </div>
+    <div class="tally" aria-live="polite">
+      <b id="casecount">0</b>
+      <small>case files</small>
+      <i id="readcount">0 files read</i>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab on" data-t="hunt" role="tab">HUNT</button>
+    <button class="tab" data-t="cases" role="tab">CASES <span class="count" id="tabcount">0</span></button>
+    <button class="tab" data-t="about" role="tab">ABOUT</button>
+  </nav>
+
+  <!-- ===================== HUNT ===================== -->
+  <main id="v-hunt" class="view">
+    <section class="step">
+      <div class="stephead"><span class="n">01</span><h2>TARGET</h2><em>swipe the rows</em></div>
+      <div id="grounds"></div>
+      <div class="grp">
+        <div class="grplabel">Any site you name</div>
+        <div class="row">
+          <input id="custom" class="field" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="domain or path, e.g. oldsite.com">
+          <button class="chip" data-kind="ground" data-id="custom" id="customchip"><span class="cl">Use it</span><span class="ct">domain or path</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="stephead"><span class="n">02</span><h2>FILES</h2><em>what to pull from the index</em></div>
+      <div class="chiprow wraprow" id="filters"></div>
+      <div class="inline">
+        <label for="urlword">URL contains</label>
+        <input id="urlword" class="field" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="optional: plan, minutes, chat…">
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="stephead"><span class="n">03</span><h2>SIGNALS</h2><em>what to flag inside each file</em></div>
+      <div class="chiprow wraprow" id="themes"></div>
+      <div class="inline">
+        <label for="words">Also flag</label>
+        <input id="words" class="field" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="your own words, comma-separated">
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="stephead"><span class="n">04</span><h2>WHEN</h2><em>capture date</em></div>
+      <div class="chiprow wraprow" id="eras"></div>
+    </section>
+
+    <div class="status" id="status"></div>
+
+    <div id="sigwrap" hidden>
+      <div class="sechead"><h3>FINDINGS</h3><span id="sigsub"></span></div>
+      <div class="list" id="signals"></div>
+    </div>
+    <button class="btn wide" id="more" hidden>READ 20 MORE</button>
+    <details class="quiet" id="quietwrap" hidden>
+      <summary id="quietsum">Read, nothing flagged</summary>
+      <div id="quiet"></div>
+    </details>
+  </main>
+
+  <!-- ===================== CASES ===================== -->
+  <main id="v-cases" class="view" hidden>
+    <div class="facts" style="margin:6px 0 12px"><button class="btn" id="copyall">Copy all case files</button></div>
+    <div class="list" id="caselist"></div>
+  </main>
+
+  <!-- ===================== ABOUT ===================== -->
+  <main id="v-about" class="view about" hidden>
+    <div class="card">
+      <p>The Wayback Machine keeps an index of <b>every file it ever saved</b> from a site, including files no page linked to: drafts, logs, notes, meeting minutes, dumps people forgot were public. DIGSITE pulls files from that index, <b>reads the first 32 KB of each one</b>, and ranks them by how much secrecy, planning, cover-up or confession language they contain. The matching passages are highlighted.</p>
+    </div>
+    <h3>HOW TO HUNT</h3>
+    <ol>
+      <li>Pick a <b>target</b>. GeoCities and the free hosts drop you in a random corner each hunt. Named sites search the whole site.</li>
+      <li>Pick which <b>files</b> to pull. <em>Leaky files</em> goes after paths named private, minutes, logs, drafts, notes, members and the like.</li>
+      <li>Pick the <b>signals</b> to flag, and add your own words.</li>
+      <li>Hit <b>HUNT</b>. It reads the 20 most promising files, then you can read 20 more at a time.</li>
+      <li><b>READ</b> opens the whole file with every hit highlighted. <b>SAVE</b> puts it in your case files with a note.</li>
+    </ol>
+    <h3>READING THE SCORE</h3>
+    <ul>
+      <li><b style="color:var(--red)">STRONG</b>: several distinct phrases, usually across more than one theme.</li>
+      <li><b style="color:var(--amber)">MEDIUM</b>: a couple of real phrases.</li>
+      <li><b style="color:var(--dim)">WEAK</b>: single common words like "classified" or "recruit". Usually noise.</li>
+      <li>Phrases count more than single words. Your own words count extra.</li>
+    </ul>
+    <h3>REALITY CHECK</h3>
+    <p class="dim">Most hits are fiction, role-play, fan pages and kids' "secret club" pages. A hit is a lead, not proof. Check the date, read the whole file, look at the other files saved in the same folder, and open other captures in the Wayback Machine.</p>
+    <h3>READ, DON'T TRACK</h3>
+    <p class="dim">This tool reads what was published. It doesn't identify or locate the people behind pages, and it's not meant for that. Many authors were teenagers then. If something looks like a real crime, take it to the people whose job that is.</p>
+    <h3>SIGNAL THEMES</h3>
+    <div class="lex" id="lex"></div>
+    <p class="dim" style="margin-top:18px">Data: Internet Archive Wayback Machine. It's a nonprofit, so DIGSITE reads two files at a time.</p>
+  </main>
+</div>
+
+<div class="bar" id="bar"><div class="wrap"><button class="bigbtn" id="hunt">HUNT ▶</button></div></div>
+
+<div class="sheet" id="reader" hidden>
+  <div class="sheetbox" role="dialog" aria-modal="true" aria-labelledby="rd-name">
+    <div class="sheethead">
+      <div><h3 id="rd-name">file</h3><p id="rd-path"></p></div>
+      <button class="x" id="rd-close" aria-label="Close">×</button>
+    </div>
+    <div class="modes" id="rd-modes">
+      <button data-m="text">TEXT</button>
+      <button data-m="page">PAGE + LINKS</button>
+      <button data-m="dos">DOS</button>
+      <button data-m="strings">STRINGS</button>
+      <button data-m="next">NEXT HIT ↓</button>
+    </div>
+    <pre class="reader" id="rd-text"></pre>
+    <div class="sheetfoot">
+      <a class="btn" id="rd-open" href="#" target="_blank" rel="noopener">Open in Wayback</a>
+      <a class="btn ghost" id="rd-folder" href="#" target="_blank" rel="noopener">Same folder ↗</a>
+      <button class="btn" id="rd-copy">Copy</button>
+      <button class="btn save" id="rd-save">SAVE</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ============ helpers ============ */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function withTimeout(ms) {
+  try { if (AbortSignal.timeout) return AbortSignal.timeout(ms); } catch (e) {}
+  const c = new AbortController(); setTimeout(() => c.abort(), ms); return c.signal;
+}
+
+/* ============ targets ============ */
+const ABC = 'abcdefghijklmnopqrstuvwxyz'.split('');
+const SECOND = 'aeioulnrsthm'.split('');
+const DIGITS = '123456789'.split('');
+const DIGITS0 = '0123456789'.split('');
+const STATES = 'al ak az ar ca co ct de fl ga hi id il in ia ks ky la me md ma mi mn ms mo mt ne nv nh nj nm ny nc nd oh ok or pa ri sc sd tn tx ut vt va wa wv wi wy'.split(' ');
+
+const GROUPS = [
+  { id: 'crypto', label: 'Crypto prehistory · before Bitcoin' },
+  { id: 'geo',    label: 'GeoCities neighborhoods · random corner each hunt' },
+  { id: 'host',   label: 'Free homepage hosts · random corner each hunt' },
+  { id: 'famous', label: 'Institutions & mysteries' },
+];
+const site = (group, domain, label, tag, extra = {}) => ({ id: group + ':' + domain, group, label, tag, base: domain, match: 'domain', ...extra });
+const geo = (name, tag) => ({ id: 'geo:' + name.toLowerCase(), group: 'geo', label: name, tag, base: `geocities.com/${name}/`, match: 'prefix', rand: 'geo' });
+const host = (id, label, base, rand) => ({ id: 'host:' + id, group: 'host', label, tag: base.replace(/\/$/, ''), base, match: 'prefix', rand });
+
+const GROUNDS = [
+  site('crypto', 'weidai.com', 'weidai.com', 'Wei Dai · b-money, 1998'),
+  site('crypto', 'cypherspace.org', 'cypherspace.org', 'Adam Back · hashcash'),
+  site('crypto', 'hashcash.org', 'hashcash.org', 'proof-of-work, 1997'),
+  site('crypto', 'finney.org', 'finney.org', 'Hal Finney'),
+  site('crypto', 'rpow.net', 'rpow.net', 'Finney · reusable PoW, 2004'),
+  site('crypto', 'szabo.best.vwh.net', 'Szabo’s old site', 'Nick Szabo · bit gold', { match: 'host' }),
+  site('crypto', 'cypherpunks.venona.com', 'Cypherpunks list', 'mail archive · 1992–98', { match: 'host' }),
+  site('crypto', 'digicash.com', 'digicash.com', 'Chaum’s ecash · 90s'),
+  site('crypto', 'e-gold.com', 'e-gold.com', 'digital gold · 1996'),
+  site('crypto', 'metzdowd.com', 'metzdowd.com', 'list the whitepaper hit'),
+  site('crypto', 'bitcoin.org', 'bitcoin.org', 'Satoshi era · 2008–10', { era: 'e5' }),
+
+  geo('Area51', 'sci-fi · UFOs · paranormal'),
+  geo('CapitolHill', 'politics · government'),
+  geo('Pentagon', 'military'),
+  geo('WallStreet', 'money · investing'),
+  geo('SiliconValley', 'computers · hacking'),
+  geo('CapeCanaveral', 'space · science'),
+  geo('Athens', 'philosophy · school'),
+  geo('SoHo', 'art · writing'),
+  geo('Heartland', 'family · hometowns'),
+  geo('TimesSquare', 'games'),
+  geo('Hollywood', 'movies · TV'),
+  geo('Tokyo', 'anime · Asia'),
+  geo('SunsetStrip', 'rock · punk'),
+  geo('Eureka', 'small business'),
+
+  host('aol', 'AOL Members', 'members.aol.com/', 'alpha2'),
+  host('hometown', 'AOL Hometown', 'hometown.aol.com/', 'alpha2'),
+  host('tripod', 'Tripod', 'members.tripod.com/', 'tripod'),
+  host('angelfire', 'Angelfire', 'angelfire.com/', 'state'),
+  host('compuserve', 'CompuServe', 'ourworld.compuserve.com/homepages/', 'alpha2'),
+  host('xoom', 'Xoom', 'members.xoom.com/', 'alpha2'),
+  host('fortunecity', 'FortuneCity', 'fortunecity.com/', 'alpha'),
+  host('theglobe', 'theglobe.com', 'members.theglobe.com/', 'alpha2'),
+
+  site('famous', 'ufomind.com', 'ufomind.com', '90s Area 51 research'),
+  site('famous', 'dreamlandresort.com', 'dreamlandresort.com', 'Groom Lake watchers'),
+  site('famous', 'artbell.com', 'artbell.com', 'late-night paranormal radio'),
+  site('famous', 'heavensgate.com', 'heavensgate.com', '1997 UFO cult site'),
+  site('famous', 'cia.gov', 'cia.gov', '90s spy agency'),
+  site('famous', 'nsa.gov', 'nsa.gov', '90s spy agency'),
+  site('famous', 'whitehouse.gov', 'whitehouse.gov', '90s White House'),
+  site('famous', 'netscape.com', 'netscape.com', 'browser-war HQ'),
+];
+
+function holeFor(g) {
+  switch (g.rand) {
+    case 'geo':    return Math.random() < 0.6 ? g.base + pick(DIGITS) + pick(DIGITS0) : g.base + pick(ABC);
+    case 'alpha':  return g.base + pick(ABC);
+    case 'alpha2': return g.base + pick(ABC) + pick(SECOND);
+    case 'tripod': return g.base + (Math.random() < 0.5 ? '~' : '') + pick(ABC) + pick(SECOND);
+    case 'state':  return g.base + pick(STATES) + pick(['', '', '', '2', '3']) + '/' + pick(ABC);
+    default:       return g.base;
+  }
+}
+
+/* ============ which files to pull ============ */
+const LEAKY_WORDS = 'private|priv|secret|secrets|hidden|confidential|internal|members|membersonly|staff|admin|minutes|meeting|meetings|plan|plans|planning|agenda|memo|memos|notes|diary|journal|log|logs|chat|chatlog|chatlogs|irc|transcript|transcripts|draft|drafts|todo|leak|leaked|evidence|backup|old|test|temp|tmp|personal|keep[-_]?out|do[-_]?not|archive|archives';
+const NOISE = '.*\\.(gif|jpe?g|png|bmp|ico|css|js|swf|mid|midi|wav|mp3|avi|mov|mpg)$';
+const FILTERS = {
+  leaky: { label: 'Leaky files', tag: 'private · minutes · logs · drafts', re: `(.*[/_.~-](${LEAKY_WORDS})([/_.0-9-].*|$))|(.*\\.(log|bak|old|tmp)$)`, not: NOISE },
+  text:  { label: 'Text & logs', tag: '.txt .log .nfo', re: '.*\\.(txt|log|nfo|asc|me|1st|lst)$', not: '.*/robots\\.txt$' },
+  docs:  { label: 'Documents', tag: '.doc .rtf .pdf', re: '.*\\.(doc|rtf|pdf|wpd|wri|ps|tex)$' },
+  pages: { label: 'Web pages', tag: '.htm .html .shtml', re: '.*(\\.(s?html?|asp|php3?|cgi|pl)|/)$', not: '.*/index\\.s?html?$' },
+  all:   { label: 'Everything', tag: 'no media', re: null, not: NOISE },
+};
+const LEAKY_RX = new RegExp(`[/_.~-](${LEAKY_WORDS})([/_.0-9-]|$)`, 'i');
+
+const ERAS = [
+  { id: 'any', label: 'Any year' },
+  { id: 'e1',  label: '1996–99', from: '1996', to: '1999' },
+  { id: 'e2',  label: '2000–04', from: '2000', to: '2004' },
+  { id: 'e3',  label: '2005–09', from: '2005', to: '2009' },
+  { id: 'e5',  label: '2008–10 · Bitcoin dawn', from: '2008', to: '2010' },
+];
+
+/* ============ signal themes ============ */
+const THEMES = {
+  secrecy:    { label: 'Secrecy', color: 'var(--red)', terms: ["don't tell", 'do not tell', 'keep this secret', 'keep it secret', 'keep this between', 'between us', 'nobody knows', 'no one knows', 'no one can know', 'nobody can know', 'top secret', 'for your eyes only', 'eyes only', 'burn after reading', 'delete this', 'destroy this', 'if anyone finds', "if you're reading this", 'if you are reading this', 'not for public', 'off the record', 'need to know', 'confidential', 'secretly'] },
+  plans:      { label: 'Plans & ops', color: 'var(--amber)', terms: ['the plan', 'our plan', 'the plan is', 'phase one', 'phase two', 'phase 1', 'phase 2', 'code name', 'codename', 'code word', 'the meeting', 'next meeting', 'secret meeting', 'rendezvous', 'dead drop', 'zero hour', 'the target', 'get rid of', 'make it look like', 'no witnesses', 'the operation', 'objective', 'timeline'] },
+  coverup:    { label: 'Cover-ups', color: 'var(--cyan)', terms: ['cover up', 'cover-up', 'coverup', "they don't want you to know", 'what they don\'t want', 'the truth is', 'the real truth', 'black project', 'black budget', 'disinformation', 'men in black', 'the government knows', "they're watching", 'they are watching', 'being followed', 'wiretap', 'under surveillance', 'shredded', 'paper trail', 'whistleblower', 'leaked', 'classified', 'declassified'] },
+  confession: { label: 'Confessions', color: 'var(--violet)', terms: ['i never told', 'never told anyone', 'i have to confess', 'i confess', 'my confession', 'i did it', 'i lied', 'nobody can find out', 'no one can find out', 'my secret', 'what really happened', 'the real reason', "i'm not proud", 'i got away with', 'i regret'] },
+  groups:     { label: 'Groups & oaths', color: 'var(--lime)', terms: ['members only', 'secret society', 'inner circle', 'the order', 'the brotherhood', 'our group', 'our organization', 'initiation', 'sworn to', 'blood oath', 'the council', 'the elders', 'recruit', 'recruiting'] },
+  money:      { label: 'Money & schemes', color: 'var(--gold)', terms: ['untraceable', 'offshore', 'anonymous account', 'numbered account', 'launder', 'laundering', 'cash only', 'wire transfer', 'digital cash', 'ecash', 'e-cash', 'electronic cash', 'anonymous money', 'double spend', 'double-spending', 'remailer', 'pgp', 'crypto anarchy', 'crypto-anarchy', 'cypherpunk', 'scheme'] },
+};
+const MINE = { label: 'Your words', color: 'var(--pink)' };
+
+/* ============ saved state ============ */
+const store = (() => { try { const k = '__dig'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; } catch (e) { return null; } })();
+const KEY = 'digsite.v2';
+const S = (() => {
+  const d = { cases: [], reads: 0, pick: { ground: 'crypto:weidai.com', filter: 'leaky', era: 'any' },
+              themes: { secrecy: true, plans: true, coverup: true, confession: true, groups: true, money: true },
+              custom: '', urlword: '', words: '' };
+  if (!store) return d;
+  try {
+    const j = JSON.parse(store.getItem(KEY) || 'null');
+    if (j) return Object.assign(d, j, { pick: Object.assign(d.pick, j.pick || {}), themes: Object.assign(d.themes, j.themes || {}) });
+    const old = JSON.parse(store.getItem('digsite.v1') || 'null');   // carry over finds kept in the first version
+    if (old && Array.isArray(old.stash)) d.cases = old.stash.map(s => ({ id: s.id, ts: s.ts, orig: s.orig, mime: s.mime || '', ground: s.ground || '', note: s.note || '', level: '', hits: {}, snippet: '', saved: s.kept || Date.now() }));
+  } catch (e) {}
+  return d;
+})();
+function save() { if (!store) return; try { store.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+/* ============ formatting ============ */
+const cleanPath = o => o.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/:80(?=\/|$)/, '');
+function nameOf(orig) {
+  try {
+    const u = new URL(orig);
+    let p = u.pathname; if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
+    let n = p.split('/').pop() || u.hostname.replace(/^www\./, '');
+    try { n = decodeURIComponent(n); } catch (e) {}
+    return n + (u.search ? u.search.slice(0, 40) : '');
+  } catch (e) { return orig.split('/').filter(Boolean).pop() || orig; }
+}
+const fmtDate = ts => ts.length >= 8 ? `${ts.slice(0, 4)}-${ts.slice(4, 6)}-${ts.slice(6, 8)}` : ts;
+function fmtSize(n) { if (!n) return '?'; if (n < 1024) return n + ' B'; if (n < 1048576) return Math.round(n / 1024) + ' KB'; return (n / 1048576).toFixed(1) + ' MB'; }
+const replayUrl = f => `https://web.archive.org/web/${f.ts}/${f.orig}`;
+function folderUrl(f) {
+  const p = cleanPath(f.orig).split(/[?#]/)[0];
+  const dir = p.endsWith('/') ? p : p.slice(0, p.lastIndexOf('/') + 1);
+  return `https://web.archive.org/web/*/${dir}*`;
+}
+
+/* ============ archive calls ============ */
+function buildParams(g, hole) {
+  const F = FILTERS[S.pick.filter] || FILTERS.leaky;
+  const E = ERAS.find(e => e.id === S.pick.era) || ERAS[0];
+  const p = new URLSearchParams();
+  p.set('url', hole);
+  p.set('matchType', g.match);
+  p.set('limit', g.rand ? '250' : '500');
+  if (E.from) p.set('from', E.from);
+  if (E.to) p.set('to', E.to);
+  p.append('filter', 'statuscode:200');
+  if (F.re) p.append('filter', 'urlkey:' + F.re);
+  if (F.not) p.append('filter', '!urlkey:' + F.not);
+  const w = (S.urlword || '').trim().toLowerCase();
+  if (w) p.append('filter', 'urlkey:.*' + escRe(w) + '.*');
+  return p;
+}
+function cdxUrl(p, asJson) {
+  const q = new URLSearchParams(p);
+  q.set('fl', 'timestamp,original,mimetype,length');
+  q.set('collapse', 'urlkey');
+  if (asJson) q.set('output', 'json');
+  return 'https://web.archive.org/cdx/search/cdx?' + q.toString();
+}
+function softError(msg) { const e = new Error(msg); e.soft = true; return e; }
+const isTimeout = e => e && (e.name === 'TimeoutError' || e.name === 'AbortError');
+
+async function apiDig(p) {
+  try {
+    const r = await fetch('/api/dig?' + p.toString(), { signal: withTimeout(62000) });
+    if ((r.headers.get('content-type') || '').includes('application/json')) {
+      const j = await r.json();
+      if (!r.ok) throw softError(j.error || ('Search failed (' + r.status + ')'));
+      return j.rows || [];
+    }
+  } catch (e) {
+    if (e.soft) throw e;
+    if (isTimeout(e)) throw softError('The archive index took too long. Try again or pick a smaller target.');
+  }
+  let r;
+  try { r = await fetch(cdxUrl(p, true), { signal: withTimeout(62000) }); }
+  catch (e) { throw softError(isTimeout(e) ? 'The archive index took too long.' : 'Couldn’t reach the archive from this page.'); }
+  if (!r.ok) throw softError('The archive index answered ' + r.status + '.');
+  const t = await r.text();
+  if (!t.trim()) return [];
+  const rows = JSON.parse(t);
+  return Array.isArray(rows) ? rows.slice(1) : [];
+}
+function b64ToBytes(b64) { const bin = atob(b64); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
+async function apiPeek(f) {
+  try {
+    const r = await fetch('/api/peek?' + new URLSearchParams({ ts: f.ts, url: f.orig }), { signal: withTimeout(32000) });
+    if ((r.headers.get('content-type') || '').includes('application/json')) {
+      const j = await r.json();
+      if (!r.ok) throw softError(j.error || 'Read failed.');
+      return { bytes: b64ToBytes(j.b64 || ''), type: j.type || '', truncated: !!j.truncated };
+    }
+  } catch (e) {
+    if (e.soft) throw e;
+    if (isTimeout(e)) throw softError('The archive took too long to hand that file over.');
+  }
+  let r;
+  try { r = await fetch(`https://web.archive.org/web/${f.ts}id_/${f.orig}`, { signal: withTimeout(32000) }); }
+  catch (e) { throw softError('Couldn’t pull the file from this page.'); }
+  if (!r.ok) throw softError('The archive answered ' + r.status + ' for that file.');
+  const buf = new Uint8Array(await r.arrayBuffer());
+  return { bytes: buf.slice(0, 32768), type: r.headers.get('content-type') || '', truncated: buf.length > 32768 };
+}
+
+/* ============ decoding ============ */
+const CP437 = 'ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ';
+function dec1252(b) { try { return new TextDecoder('windows-1252').decode(b); } catch (e) { let s = ''; for (const c of b) s += String.fromCharCode(c); return s; } }
+function decDos(b) { let s = ''; for (const c of b) s += c < 128 ? String.fromCharCode(c) : CP437[c - 128]; return s; }
+const tidy = s => s.replace(/\r\n?/g, '\n').replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '');
+function strings(b) {
+  const out = []; let cur = '';
+  for (const c of b) {
+    if ((c >= 32 && c < 127) || c === 9) cur += String.fromCharCode(c);
+    else { if (cur.length >= 5) out.push(cur); cur = ''; }
+    if (out.length > 900) break;
+  }
+  if (cur.length >= 5) out.push(cur);
+  return out.join('\n');
+}
+function pageParts(html, base) {
+  let d;
+  try { d = new DOMParser().parseFromString(html, 'text/html'); } catch (e) { return { title: '', body: html, links: [] }; }
+  d.querySelectorAll('script,style,noscript').forEach(n => n.remove());
+  d.querySelectorAll('br,p,div,h1,h2,h3,h4,h5,h6,li,tr,blockquote,pre,hr,center,table,dt,dd').forEach(n => n.after('\n'));
+  const title = (d.title || '').trim();
+  const body = (d.body ? d.body.textContent : '').replace(/[ \t ]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  const links = [...new Set([...d.querySelectorAll('a[href]')]
+    .map(a => { try { return new URL(a.getAttribute('href'), base).href; } catch (e) { return null; } })
+    .filter(x => x && /^https?:/i.test(x)))].slice(0, 80);
+  return { title, body, links };
+}
+function pageText(html, base) {
+  const p = pageParts(html, base);
+  return (p.title ? `【 ${p.title} 】\n\n` : '') + p.body + (p.links.length ? '\n\n— links on this page —\n' + p.links.join('\n') : '');
+}
+function looksBinary(b) {
+  const n = Math.min(b.length, 2048); let bad = 0;
+  for (let i = 0; i < n; i++) { const c = b[i]; if (c === 0) return true; if (c < 9 || (c > 13 && c < 32)) bad++; }
+  return n > 0 && bad / n > 0.1;
+}
+function autoMode(f, r) {
+  const t = (r.type || '').toLowerCase();
+  const ext = (f.orig.split(/[?#]/)[0].split('/').pop().split('.').pop() || '').toLowerCase();
+  if (looksBinary(r.bytes)) return 'strings';
+  if (t.includes('html') || /^(s?html?|php3?|asp|cgi|pl)$/.test(ext) || /<html|<body|<p>|<br/i.test(dec1252(r.bytes.slice(0, 1500)))) return 'page';
+  if (['ans', 'nfo', 'diz'].includes(ext)) return 'dos';
+  return 'text';
+}
+function scanText(f, r) {
+  const mode = autoMode(f, r);
+  if (mode === 'page') { const p = pageParts(dec1252(r.bytes), f.orig); return (p.title ? p.title + '\n' : '') + p.body; }
+  if (mode === 'strings') return strings(r.bytes);
+  if (mode === 'dos') return tidy(decDos(r.bytes));
+  return tidy(dec1252(r.bytes));
+}
+
+/* ============ signal matcher ============ */
+let M = null;
+function termSrc(t) {
+  const core = escRe(t.toLowerCase()).replace(/'/g, "['’]?").replace(/\s+/g, '[\\s\\-]+');
+  return (/^\w/.test(t) ? '\\b' : '') + core + (/\w$/.test(t) ? '\\b' : '');
+}
+function myWords() { return (S.words || '').split(',').map(w => w.trim()).filter(w => w.length >= 2).slice(0, 20); }
+function buildMatcher() {
+  const terms = [];
+  for (const [k, T] of Object.entries(THEMES)) if (S.themes[k]) for (const t of T.terms) terms.push({ t, theme: k, w: /[\s'-]/.test(t) ? 3 : 1 });
+  for (const t of myWords()) terms.push({ t, theme: 'mine', w: 5 });
+  M = terms.length ? { terms, re: new RegExp(terms.map(x => '(' + termSrc(x.t) + ')').join('|'), 'gi') } : null;
+}
+function themeOf(k) { return k === 'mine' ? MINE : THEMES[k]; }
+function eachHit(text, fn) {
+  if (!M) return;
+  M.re.lastIndex = 0; let m, n = 0;
+  while ((m = M.re.exec(text)) && n < 500) {
+    if (!m[0]) { M.re.lastIndex++; continue; }
+    let gi = 1; while (gi < m.length && m[gi] === undefined) gi++;
+    fn(M.terms[gi - 1], m.index, m[0].length); n++;
+  }
+}
+function analyze(text) {
+  const hits = {}, distinct = new Map(), pos = [];
+  eachHit(text, (term, i, len) => {
+    hits[term.theme] = (hits[term.theme] || 0) + 1;
+    distinct.set(term.t, term.w);
+    pos.push({ i, len, theme: term.theme });
+  });
+  let score = 0; for (const w of distinct.values()) score += w;
+  score += Math.min(pos.length - distinct.size, 8) * 0.5;
+  const nThemes = Object.keys(hits).length;
+  if (nThemes > 1) score += (nThemes - 1) * 2;
+  score = Math.round(score);
+  const level = score >= 10 ? 'strong' : score >= 5 ? 'medium' : score > 0 ? 'weak' : '';
+  // up to 3 snippets, spread out, preferring different themes
+  const snips = []; const seenT = new Set(); const firstOfEach = [];
+  for (const p of pos) if (!seenT.has(p.theme)) { seenT.add(p.theme); firstOfEach.push(p); }
+  for (const p of [...firstOfEach, ...pos]) {
+    if (snips.length >= 3) break;
+    if (snips.some(s => Math.abs(s.i - p.i) < 220)) continue;
+    snips.push(p);
+  }
+  snips.sort((a, b) => a.i - b.i);
+  const snippets = snips.map(p => {
+    const a = Math.max(0, p.i - 110), b = Math.min(text.length, p.i + p.len + 110);
+    return (a > 0 ? '…' : '') + text.slice(a, b).replace(/\s+/g, ' ').trim() + (b < text.length ? '…' : '');
+  });
+  return { score, level, hits, distinct: distinct.size, snippets };
+}
+function highlighted(str) {
+  const frag = document.createDocumentFragment();
+  let last = 0;
+  eachHit(str, (term, i, len) => {
+    if (i > last) frag.append(str.slice(last, i));
+    const m = h('mark', { text: str.slice(i, i + len), style: `--t:${themeOf(term.theme).color}` });
+    frag.append(m); last = i + len;
+  });
+  if (last < str.length) frag.append(str.slice(last));
+  return frag;
+}
+
+/* ============ pickers ============ */
+function chip(kind, id, label, tag, color, multi) {
+  const on = multi ? !!S.themes[id] : S.pick[kind] === id;
+  return h('button', {
+    class: 'chip' + (on ? ' on' : ''), 'data-kind': kind, 'data-id': id, 'aria-pressed': on ? 'true' : 'false',
+    style: color ? `--c:${color}` : null,
+    onclick: () => {
+      if (multi) { S.themes[id] = !S.themes[id]; save(); themesChanged(); }
+      else { S.pick[kind] = id; save(); }
+      syncChips();
+    },
+  }, h('span', { class: 'cl', text: label }), tag ? h('span', { class: 'ct', text: tag }) : null);
+}
+function renderPickers() {
+  const gw = $('#grounds'); gw.textContent = '';
+  for (const g of GROUPS) {
+    const row = h('div', { class: 'chiprow' });
+    for (const gr of GROUNDS.filter(x => x.group === g.id)) row.append(chip('ground', gr.id, gr.label, gr.tag));
+    gw.append(h('div', { class: 'grp' }, h('div', { class: 'grplabel', text: g.label }), row));
+  }
+  const fw = $('#filters'); fw.textContent = '';
+  for (const [k, F] of Object.entries(FILTERS)) fw.append(chip('filter', k, F.label, F.tag, 'var(--cyan)'));
+  const tw = $('#themes'); tw.textContent = '';
+  for (const [k, T] of Object.entries(THEMES)) tw.append(chip('theme', k, T.label, T.terms.slice(0, 2).join(' · '), T.color, true));
+  const ew = $('#eras'); ew.textContent = '';
+  for (const e of ERAS) ew.append(chip('era', e.id, e.label, null, 'var(--amber)'));
+  const lex = $('#lex'); lex.textContent = '';
+  for (const T of Object.values(THEMES)) lex.append(h('div', {}, h('b', { text: T.label + ': ', style: `color:${T.color}` }), T.terms.join(' · ')));
+  $('#customchip').addEventListener('click', () => {
+    S.pick.ground = 'custom'; save(); syncChips();
+    if (!(S.custom || '').trim()) $('#custom').focus();
+  });
+  syncChips();
+}
+function syncChips() {
+  $$('.chip[data-kind]').forEach(c => {
+    const on = c.dataset.kind === 'theme' ? !!S.themes[c.dataset.id] : S.pick[c.dataset.kind] === c.dataset.id;
+    c.classList.toggle('on', on); c.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  if (!busy) idleStatus();
+}
+function currentGround() {
+  if (S.pick.ground === 'custom') {
+    const raw = (S.custom || '').trim().replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\s+/g, '');
+    if (!raw) return null;
+    const hasPath = /\/./.test(raw);
+    return { id: 'custom', group: 'custom', label: raw.replace(/\/$/, ''), base: hasPath ? raw : raw.replace(/\/$/, ''), match: hasPath ? 'prefix' : 'domain' };
+  }
+  return GROUNDS.find(g => g.id === S.pick.ground) || GROUNDS[0];
+}
+
+/* ============ status ============ */
+let lastParams = null;
+function setStatus(text, kind, opts = {}) {
+  const s = $('#status'); s.className = 'status' + (kind ? ' ' + kind : ''); s.textContent = text;
+  if (kind === 'work' || !kind) s.append(h('span', { class: 'cur' }));
+  if (opts.meter != null) s.append(h('div', { class: 'meter' }, h('i', { style: `width:${Math.round(opts.meter * 100)}%` })));
+  if (opts.raw && lastParams) s.append(document.createElement('br'), h('a', { href: cdxUrl(lastParams, false), target: '_blank', rel: 'noopener', text: 'raw index ↗' }));
+}
+function idleStatus() {
+  const g = currentGround();
+  const F = FILTERS[S.pick.filter] || FILTERS.leaky;
+  const E = ERAS.find(e => e.id === S.pick.era) || ERAS[0];
+  const on = Object.entries(THEMES).filter(([k]) => S.themes[k]).map(([, T]) => T.label);
+  const mine = myWords();
+  const where = !g ? 'type a site above' : g.rand ? g.base + '⁇ (random corner)' : g.base;
+  const sig = [...on, ...(mine.length ? [`“${mine.join('”, “')}”`] : [])];
+  setStatus(`▸ ${where} · ${F.label} · ${E.label}${(S.urlword || '').trim() ? ` · URL has “${S.urlword.trim()}”` : ''}\n▸ flagging: ${sig.length ? sig.join(', ') : 'nothing (turn on a signal)'}`, '');
+}
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200); }
+function copy(text, ok = 'Copied') {
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast(ok), () => toast('Copy blocked: long-press to select'));
+  else toast('Copy not supported here');
+}
+function updateTally() {
+  $('#casecount').textContent = S.cases.length;
+  $('#tabcount').textContent = S.cases.length;
+  $('#readcount').textContent = `${S.reads} file${S.reads === 1 ? '' : 's'} read`;
+}
+
+/* ============ the hunt ============ */
+let busy = false, stopFlag = false, finds = [], queue = [], lastHole = '', lastRunAt = 0, rateLimited = false;
+const BATCH = 20;
+function setBar() { const b = $('#hunt'); b.textContent = busy ? 'STOP ■' : 'HUNT ▶'; b.classList.toggle('stop', busy); }
+function leakScore(orig, len) {
+  const p = cleanPath(orig).toLowerCase();
+  let s = 0;
+  if (LEAKY_RX.test(p)) s += 4;
+  if (/\.(txt|log|doc|rtf|wri|wpd|nfo|lst)$/.test(p)) s += 3;
+  else if (/\.(s?html?|asp|php3?|cgi|pl)$|\/$/.test(p)) s += 1;
+  if (/\.(zip|exe|pdf|rar|tar|gz)$/.test(p)) s -= 1;
+  if (len > 3000000) s -= 3;
+  if (/\/(index|default)\.s?html?$/.test(p)) s -= 1;
+  return s + Math.random() * 1.5;
+}
+async function hunt() {
+  if (busy) { stopFlag = true; setStatus('Stopping after the files in progress…', 'work'); return; }
+  const g = currentGround();
+  if (!g) { toast('Type a site first'); $('#custom').focus(); return; }
+  buildMatcher();
+  if (!M) { toast('Turn on at least one signal'); return; }
+  const wait = 1500 - (Date.now() - lastRunAt);
+  if (wait > 0) await sleep(wait);
+  busy = true; stopFlag = false; rateLimited = false; setBar();
+  finds = []; queue = []; renderLists();
+  const tries = g.rand ? 4 : 1;
+  let rows = [], err = null, hole = '';
+  for (let i = 0; i < tries && !stopFlag; i++) {
+    hole = holeFor(g);
+    lastParams = buildParams(g, hole);
+    setStatus(i === 0 ? `Searching the index at ${hole} …` : `Nothing there. Trying another corner → ${hole} …`, 'work');
+    try { rows = await apiDig(lastParams); err = null; }
+    catch (e) { err = e; rows = []; if (/slow down|429/i.test(e.message || '')) break; }
+    if (rows.length) break;
+    if (i < tries - 1) await sleep(700);
+  }
+  lastHole = hole; lastRunAt = Date.now();
+  if (!rows.length) {
+    busy = false; setBar();
+    if (err) setStatus(err.message || 'Search failed.', 'err', { raw: true });
+    else if (stopFlag) idleStatus();
+    else setStatus(g.rand ? `Came up empty ${tries} times. Hit HUNT for new corners, or switch FILES to Text & logs or Everything.`
+                          : `No matching files saved at ${g.base}. Try Everything, Any year, or clear the URL word.`, 'err', { raw: true });
+    return;
+  }
+  const seen = new Set();
+  finds = rows.map(r => {
+    const [ts, orig, mime, len] = r;
+    return { id: ts + ' ' + orig, ts: String(ts), orig: String(orig || ''), mime: mime || '', len: +len || 0, ground: g.label, state: 'unread' };
+  }).filter(f => f.orig && f.ts && !seen.has(f.orig) && seen.add(f.orig));
+  for (const f of finds) f.lk = leakScore(f.orig, f.len);
+  queue = [...finds].sort((a, b) => b.lk - a.lk);
+  await readBatch(BATCH);
+  busy = false; setBar(); renderLists(); finishStatus();
+}
+async function readMore() {
+  if (busy || !queue.length) return;
+  busy = true; stopFlag = false; rateLimited = false; setBar();
+  await readBatch(BATCH);
+  busy = false; setBar(); renderLists(); finishStatus();
+}
+async function readBatch(n) {
+  const batch = queue.splice(0, n);
+  const total = batch.length; let done = 0;
+  const progress = () => setStatus(`Reading ${done}/${total} files from ${lastHole} · ${finds.length} found in the index`, 'work', { meter: total ? done / total : 0 });
+  progress();
+  const worker = async () => {
+    while (batch.length && !stopFlag && !rateLimited) {
+      const f = batch.shift();
+      await readOne(f);
+      done++; progress(); renderLists();
+      await sleep(350);
+    }
+  };
+  await Promise.all([worker(), worker()]);
+  if (batch.length) queue.unshift(...batch);
+}
+async function readOne(f) {
+  try {
+    const r = await apiPeek(f);
+    f.raw = r;
+    f.text = scanText(f, r);
+    f.a = analyze(f.text);
+    f.state = 'read';
+    S.reads++; save(); updateTally();
+  } catch (e) {
+    f.state = 'error'; f.err = e.message || 'Read failed';
+    if (/429|slow down/i.test(f.err)) rateLimited = true;
+  }
+}
+function finishStatus() {
+  const read = finds.filter(f => f.state === 'read');
+  const flagged = read.filter(f => f.a.score > 0);
+  const strong = flagged.filter(f => f.a.level === 'strong').length;
+  let msg = `${finds.length} files indexed at ${lastHole}. Read ${read.length}, flagged ${flagged.length}${strong ? ` (${strong} strong)` : ''}.`;
+  if (queue.length) msg += ` ${queue.length} still unread.`;
+  if (rateLimited) msg += ' The archive asked us to slow down, so wait a minute before reading more.';
+  else if (stopFlag) msg += ' Stopped.';
+  setStatus(msg, rateLimited ? 'err' : 'ok', { raw: true });
+}
+function themesChanged() {
+  buildMatcher();
+  for (const f of finds) if (f.state === 'read') f.a = analyze(f.text);
+  renderLists();
+}
+
+/* ============ rendering ============ */
+const isSaved = f => S.cases.some(c => c.id === f.id);
+function saveCase(f) {
+  if (isSaved(f)) return false;
+  const a = f.a || { level: '', hits: {}, snippets: [] };
+  S.cases.push({ id: f.id, ts: f.ts, orig: f.orig, mime: f.mime, ground: f.ground, level: a.level, score: a.score || 0, hits: a.hits, snippet: (a.snippets || [])[0] || '', note: '', saved: Date.now() });
+  save(); updateTally(); toast('Saved to case files');
+  $$('.btn.save').forEach(b => { if (b.dataset.id === f.id) { b.classList.add('saved'); b.textContent = 'SAVED ✓'; } });
+  return true;
+}
+function saveBtn(f) { const s = isSaved(f); return h('button', { class: 'btn save' + (s ? ' saved' : ''), 'data-id': f.id, onclick: () => saveCase(f) }, s ? 'SAVED ✓' : 'SAVE'); }
+function badges(a) {
+  const out = [h('span', { class: 'lvl', text: `${a.level.toUpperCase()} · ${a.score}` })];
+  for (const [k, n] of Object.entries(a.hits).sort((x, y) => y[1] - x[1])) {
+    const T = themeOf(k); out.push(h('span', { class: 'pill', style: `--t:${T.color}`, text: `${T.label} ×${n}` }));
+  }
+  return h('div', { class: 'badges' }, out);
+}
+function findCard(f) {
+  const a = f.a;
+  return h('article', { class: 'find ' + a.level },
+    h('div', { class: 'fhead' }, h('span', { class: 'fname', text: nameOf(f.orig) }), h('span', { class: 'fyear', text: f.ts.slice(0, 4) })),
+    h('div', { class: 'fpath', text: cleanPath(f.orig) }),
+    badges(a),
+    a.snippets.map(s => h('div', { class: 'snip' }, highlighted(s))),
+    h('div', { class: 'fmeta', text: `${fmtDate(f.ts)} · ${f.mime || '?'} · ~${fmtSize(f.len)}` }),
+    h('div', { class: 'facts' },
+      h('button', { class: 'btn', onclick: () => openReader(f) }, 'READ'),
+      h('a', { class: 'btn', href: replayUrl(f), target: '_blank', rel: 'noopener' }, 'OPEN'),
+      saveBtn(f)));
+}
+function quietRow(f) {
+  return h('div', { class: 'qrow' },
+    h('div', { class: 'qn' }, h('b', { text: nameOf(f.orig) }), ` · ${f.ts.slice(0, 4)} · ${f.state === 'error' ? f.err : 'no flags'}`),
+    f.state === 'read' ? h('button', { class: 'btn', onclick: () => openReader(f) }, 'READ') : null,
+    h('a', { class: 'btn', href: replayUrl(f), target: '_blank', rel: 'noopener' }, 'OPEN'));
+}
+function renderLists() {
+  const flagged = finds.filter(f => f.state === 'read' && f.a.score > 0).sort((a, b) => b.a.score - a.a.score);
+  const quiet = finds.filter(f => (f.state === 'read' && f.a.score === 0) || f.state === 'error');
+  const sw = $('#signals'); sw.textContent = '';
+  flagged.forEach(f => sw.append(findCard(f)));
+  $('#sigwrap').hidden = !flagged.length;
+  $('#sigsub').textContent = `${flagged.length} flagged · strongest first`;
+  const qw = $('#quiet'); qw.textContent = '';
+  quiet.forEach(f => qw.append(quietRow(f)));
+  $('#quietwrap').hidden = !quiet.length;
+  $('#quietsum').textContent = `Read with nothing flagged, or unreadable (${quiet.length})`;
+  const more = $('#more');
+  more.hidden = busy || !queue.length;
+  more.textContent = `READ ${Math.min(BATCH, queue.length)} MORE (${queue.length} unread)`;
+}
+
+/* ============ reader ============ */
+let rd = null;
+function openReader(f) {
+  rd = { f, mode: 'text', hitIdx: -1 };
+  $('#reader').hidden = false; document.body.classList.add('noscroll');
+  $('#rd-name').textContent = nameOf(f.orig);
+  $('#rd-path').textContent = cleanPath(f.orig) + ' · ' + fmtDate(f.ts);
+  $('#rd-open').href = replayUrl(f);
+  $('#rd-folder').href = folderUrl(f);
+  syncReaderSave();
+  $$('#rd-modes button').forEach(b => b.classList.remove('on'));
+  const show = r => { if (!rd || rd.f !== f) return; f.raw = r; setMode(autoMode(f, r)); };
+  if (f.raw) show(f.raw);
+  else {
+    $('#rd-text').textContent = 'Pulling the file from the archive…';
+    apiPeek(f).then(show).catch(e => { if (rd && rd.f === f) $('#rd-text').textContent = (e.message || 'Read failed.') + '\n\nTap “Open in Wayback” to see it there instead.'; });
+  }
+}
+function setMode(m) {
+  if (!rd) return;
+  if (m === 'next') return nextHit();
+  rd.mode = m; rd.hitIdx = -1;
+  $$('#rd-modes button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  const r = rd.f.raw; if (!r) return;
+  const b = r.bytes;
+  let out = m === 'text' ? tidy(dec1252(b)) : m === 'dos' ? tidy(decDos(b)) : m === 'strings' ? strings(b) : pageText(dec1252(b), rd.f.orig);
+  if (!out.trim()) out = '(Nothing readable in this view. Try another one, or open it in Wayback.)';
+  if (r.truncated) out += `\n\n— first ${Math.round(b.length / 1024)} KB shown —`;
+  const pre = $('#rd-text'); pre.textContent = ''; pre.append(highlighted(out)); pre.scrollTop = 0;
+}
+function nextHit() {
+  const marks = $$('#rd-text mark'); if (!marks.length) { toast('No highlighted hits in this view'); return; }
+  rd.hitIdx = (rd.hitIdx + 1) % marks.length;
+  marks[rd.hitIdx].scrollIntoView({ block: 'center' });
+  toast(`Hit ${rd.hitIdx + 1} of ${marks.length}`);
+}
+function syncReaderSave() {
+  const b = $('#rd-save'); if (!rd) return;
+  const s = isSaved(rd.f); b.classList.toggle('saved', s); b.textContent = s ? 'SAVED ✓' : 'SAVE';
+}
+function closeReader() { $('#reader').hidden = true; document.body.classList.remove('noscroll'); rd = null; }
+
+/* ============ case files ============ */
+function renderCases() {
+  const w = $('#caselist'); w.textContent = '';
+  if (!S.cases.length) { w.append(h('p', { class: 'empty', text: 'No case files yet. Hunt, read, and hit SAVE on anything worth following up.' })); return; }
+  for (const c of [...S.cases].reverse()) {
+    const note = h('textarea', { class: 'note', rows: '3', placeholder: 'What is this? What should you check next?' });
+    note.value = c.note || '';
+    note.addEventListener('input', () => { c.note = note.value; save(); });
+    let armed = false;
+    const del = h('button', { class: 'btn ghost' }, 'REMOVE');
+    del.addEventListener('click', () => {
+      if (!armed) { armed = true; del.textContent = 'TAP AGAIN'; setTimeout(() => { armed = false; if (del.isConnected) del.textContent = 'REMOVE'; }, 2500); return; }
+      S.cases = S.cases.filter(x => x.id !== c.id); save(); updateTally(); renderCases();
+    });
+    const a = { level: c.level || 'weak', score: c.score || 0, hits: c.hits || {} };
+    w.append(h('article', { class: 'find ' + (c.level || '') },
+      h('div', { class: 'fhead' }, h('span', { class: 'fname', text: nameOf(c.orig) }), h('span', { class: 'fyear', text: c.ts.slice(0, 4) })),
+      h('div', { class: 'fpath', text: cleanPath(c.orig) }),
+      c.level ? badges(a) : null,
+      c.snippet ? h('div', { class: 'snip' }, highlighted(c.snippet)) : null,
+      h('div', { class: 'fmeta', text: `${fmtDate(c.ts)} · from ${c.ground || '?'} · saved ${new Date(c.saved).toLocaleDateString()}` }),
+      note,
+      h('div', { class: 'facts' },
+        h('button', { class: 'btn', onclick: () => openReader(c) }, 'READ'),
+        h('a', { class: 'btn', href: replayUrl(c), target: '_blank', rel: 'noopener' }, 'OPEN'),
+        h('a', { class: 'btn ghost', href: folderUrl(c), target: '_blank', rel: 'noopener' }, 'FOLDER'),
+        h('button', { class: 'btn', onclick: () => copy(replayUrl(c), 'Link copied') }, 'LINK'),
+        del)));
+  }
+}
+
+/* ============ wiring ============ */
+function showTab(t) {
+  $$('.tab').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  $$('.view').forEach(v => { v.hidden = v.id !== 'v-' + t; });
+  $('#bar').hidden = t !== 'hunt';
+  document.body.style.paddingBottom = t === 'hunt' ? '' : '24px';
+  if (t === 'cases') renderCases();
+  window.scrollTo({ top: 0 });
+}
+$$('.tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.t)));
+$('#hunt').addEventListener('click', hunt);
+$('#more').addEventListener('click', readMore);
+$('#rd-close').addEventListener('click', closeReader);
+$('#reader').addEventListener('click', e => { if (e.target.id === 'reader') closeReader(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#reader').hidden) closeReader(); });
+$$('#rd-modes button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.m)));
+$('#rd-copy').addEventListener('click', () => copy($('#rd-text').textContent, 'Text copied'));
+$('#rd-save').addEventListener('click', () => { if (!rd) return; if (rd.f.a || !isSaved(rd.f)) saveCase(rd.f); syncReaderSave(); });
+$('#copyall').addEventListener('click', () => {
+  if (!S.cases.length) { toast('No case files yet'); return; }
+  const lines = S.cases.map(c => `■ ${nameOf(c.orig)} (${fmtDate(c.ts)})${c.level ? ` [${c.level.toUpperCase()} ${c.score}]` : ''}\n  ${replayUrl(c)}${c.snippet ? `\n  "${c.snippet}"` : ''}${c.note ? `\n  NOTE: ${c.note}` : ''}`);
+  copy(`DIGSITE case files (${S.cases.length})\n\n` + lines.join('\n\n'), 'Case files copied');
+});
+const bindInput = (id, key, after) => {
+  const el = $(id); el.value = S[key] || '';
+  el.addEventListener('input', () => { S[key] = el.value; save(); if (after) after(); if (!busy) idleStatus(); });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') { el.blur(); hunt(); } });
+};
+bindInput('#custom', 'custom', () => { if (S.custom.trim()) { S.pick.ground = 'custom'; syncChips(); } });
+bindInput('#urlword', 'urlword');
+bindInput('#words', 'words', themesChanged);
+
+buildMatcher();
+renderPickers();
+updateTally();
+setBar();
+const onChip = $(`.chip[data-kind="ground"][data-id="${CSS.escape(S.pick.ground)}"]`);
+if (onChip && onChip.parentElement.classList.contains('chiprow')) onChip.parentElement.scrollLeft = Math.max(0, onChip.offsetLeft - 20);
+
+window.__dig = { GROUNDS, FILTERS, THEMES, holeFor, buildParams, analyze, buildMatcher, leakScore, scanText, pageParts, S, get M() { return M; } };
+})();
+</script>
+</body>
+</html>
